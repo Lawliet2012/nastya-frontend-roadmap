@@ -24,7 +24,7 @@
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   --transition: 0.2s ease;
   --sidebar-width: 300px;
-  --header-height: 150px;
+  --header-height: 170px;
 }
 
 html {
@@ -561,6 +561,17 @@ body {
 .task-text {
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Task tags */
+.pm-tag {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.hard-tag {
+  color: #f87171;
+  font-weight: 700;
 }
 
 /* Hint */

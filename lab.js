@@ -18,6 +18,24 @@ function esc(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function fmtTask(str) {
+  let s = esc(str);
+  // Visual line break before key markers
+  s = s.replace(/— /g, '<br>— ');
+  s = s.replace(/(Макет:)/g, '<br><strong>$1</strong>');
+  // Bold PM tasks and hard challenges
+  s = s.replace(/(ЗАДАЧА ОТ PM:)/g, '<strong class="pm-tag">$1</strong>');
+  s = s.replace(/(СЛОЖНАЯ ЗАДАЧА:)/g, '<strong class="hard-tag">$1</strong>');
+  return s;
+}
+
+function fmtHint(str) {
+  let s = esc(str);
+  // Break hints at sentence boundaries for readability
+  s = s.replace(/\. ([A-ZА-ЯЁ])/g, '.<br>$1');
+  return s;
+}
+
 function isTaskDone(id) {
   return labProgress[id] === true;
 }
@@ -172,13 +190,13 @@ function renderLabMain() {
         const checked = isTaskDone(task.id);
         const hintHtml = task.hint ? `
           <button class="hint-toggle" onclick="this.closest('.task-item').classList.toggle('show-hint')">&#9881; подсказка</button>
-          <div class="task-hint">${esc(task.hint)}</div>
+          <div class="task-hint">${fmtHint(task.hint)}</div>
         ` : '';
         return `
           <div class="task-item ${checked ? 'done' : ''}" id="item-${task.id}">
             <div class="task-box ${checked ? 'checked' : ''}" id="box-${task.id}" onclick="toggleTask('${task.id}')"></div>
             <div class="task-content">
-              <div class="task-text">${esc(task.text)}</div>
+              <div class="task-text">${fmtTask(task.text)}</div>
               ${hintHtml}
             </div>
           </div>
@@ -263,12 +281,20 @@ document.getElementById('sidebar-toggle').addEventListener('click', () => {
 
 // Active nav
 function updateActiveNav() {
-  const steps = document.querySelectorAll('.step, .phase');
+  const elements = document.querySelectorAll('.step, .phase');
   let current = '';
-  steps.forEach(el => {
-    const top = el.getBoundingClientRect().top;
-    if (top < 200) current = el.id;
-  });
+
+  // At bottom of page — highlight last item
+  const atBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 50);
+  if (atBottom && elements.length > 0) {
+    current = elements[elements.length - 1].id;
+  } else {
+    elements.forEach(el => {
+      const top = el.getBoundingClientRect().top;
+      if (top < 200) current = el.id;
+    });
+  }
+
   document.querySelectorAll('.nav-link, .nav-sub-link').forEach(link => {
     link.classList.toggle('active', link.dataset.section === current);
   });
