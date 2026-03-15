@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Roadmap</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Frontend Developer Roadmap</h1>
+            <p class="subtitle">From CRM developer to top-tier frontend engineer</p>
+            <div class="overall-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="overall-progress-fill"></div>
+                </div>
+                <span class="progress-text" id="overall-progress-text">0%</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+        <ul class="nav-list" id="nav-list"></ul>
+    </nav>
+
+    <main class="main" id="main-content"></main>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
