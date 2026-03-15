@@ -14,6 +14,10 @@ function saveLabProgress(progress) {
 
 let labProgress = loadLabProgress();
 
+function esc(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function isTaskDone(id) {
   return labProgress[id] === true;
 }
@@ -168,20 +172,20 @@ function renderLabMain() {
         const checked = isTaskDone(task.id);
         const hintHtml = task.hint ? `
           <button class="hint-toggle" onclick="this.closest('.task-item').classList.toggle('show-hint')">&#9881; подсказка</button>
-          <div class="task-hint">${task.hint}</div>
+          <div class="task-hint">${esc(task.hint)}</div>
         ` : '';
         return `
           <div class="task-item ${checked ? 'done' : ''}" id="item-${task.id}">
             <div class="task-box ${checked ? 'checked' : ''}" id="box-${task.id}" onclick="toggleTask('${task.id}')"></div>
             <div class="task-content">
-              <div class="task-text">${task.text}</div>
+              <div class="task-text">${esc(task.text)}</div>
               ${hintHtml}
             </div>
           </div>
         `;
       }).join('');
 
-      const coversHtml = step.covers.map(c => `<span class="cover-tag">${c}</span>`).join('');
+      const coversHtml = step.covers.map(c => `<span class="cover-tag">${esc(c)}</span>`).join('');
 
       return `
         <div class="step" id="${step.id}">
@@ -198,7 +202,7 @@ function renderLabMain() {
           <div class="step-body">
             <div class="step-why">
               <div class="why-label">&#127919; Зачем</div>
-              <p>${step.why}</p>
+              <p>${esc(step.why)}</p>
             </div>
             <div class="step-covers">
               <span class="covers-label">Покрывает:</span>
@@ -209,7 +213,7 @@ function renderLabMain() {
             </div>
             <div class="step-checkpoint">
               <div class="checkpoint-label">&#9989; Чекпоинт</div>
-              <p>${step.checkpoint}</p>
+              <p>${esc(step.checkpoint)}</p>
             </div>
           </div>
         </div>

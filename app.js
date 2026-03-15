@@ -14,6 +14,10 @@ function saveProgress(progress) {
 
 let progress = loadProgress();
 
+function esc(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function isChecked(id) {
   return progress[id] === true;
 }
@@ -159,7 +163,7 @@ function renderMain() {
           const linkHtml = item.link
             ? `<a class="resource-link" href="${item.link}" target="_blank" rel="noopener">${item.text}</a>`
             : `<span>${item.text}</span>`;
-          const tipHtml = item.tip ? `<div class="resource-tip">${item.tip}</div>` : '';
+          const tipHtml = item.tip ? `<div class="resource-tip">${esc(item.tip)}</div>` : '';
           return `
             <div class="resource-item">
               <span class="resource-icon">&#128279;</span>
@@ -173,13 +177,13 @@ function renderMain() {
           const checked = isChecked(item.id);
           const tipHtml = item.tip ? `
             <button class="tip-toggle" onclick="this.closest('.check-item').classList.toggle('show-tip')">&#128161; подсказка</button>
-            <div class="check-tip">${item.tip}</div>
+            <div class="check-tip">${esc(item.tip)}</div>
           ` : '';
           return `
             <div class="check-item ${checked ? 'done' : ''}" id="item-${item.id}">
               <div class="check-box ${checked ? 'checked' : ''}" id="box-${item.id}" onclick="toggleCheck('${item.id}')"></div>
               <div class="check-text">
-                ${item.text}
+                ${esc(item.text)}
                 ${tipHtml}
               </div>
             </div>
