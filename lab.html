@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frontend Roadmap</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Frontend Mega Lab</title>
+    <link rel="stylesheet" href="lab-styles.css">
 </head>
 <body>
     <header class="header">
         <div class="header-content">
-            <h1>Frontend Developer Roadmap</h1>
-            <p class="subtitle">From CRM developer to top-tier frontend engineer</p>
-            <a href="lab.html" class="lab-link">&#9889; Mega Lab</a>
+            <div class="header-top">
+                <a href="index.html" class="back-link">&larr; Роадмап</a>
+                <span class="header-badge">DummyJSON API</span>
+            </div>
+            <h1>Frontend Mega Lab</h1>
+            <p class="subtitle">Один проект — весь роадмап. Код пишешь сама, здесь только направление.</p>
             <div class="overall-progress">
                 <div class="progress-bar">
                     <div class="progress-fill" id="overall-progress-fill"></div>
                 </div>
-                <span class="progress-text" id="overall-progress-text">0%</span>
+                <span class="progress-text" id="overall-progress-text">0 / 0</span>
             </div>
         </div>
     </header>
@@ -28,7 +31,7 @@
 
     <main class="main" id="main-content"></main>
 
-    <script src="data.js"></script>
-    <script src="app.js"></script>
+    <script src="lab-data.js"></script>
+    <script src="lab.js"></script>
 </body>
 </html>
