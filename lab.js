@@ -1,309 +1,93 @@
-const LAB_STORAGE_KEY = 'nastya-lab-progress';
+// Mega Lab: превращает LAB_DATA в формат Tracker и запускает страницу.
+(function () {
+  'use strict';
 
-function loadLabProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(LAB_STORAGE_KEY)) || {};
-  } catch {
-    return {};
+  const { esc } = Tracker;
+
+  const PM_MARK = 'ЗАДАЧА ОТ PM:';
+  const HARD_MARK = 'СЛОЖНАЯ ЗАДАЧА:';
+
+  function fmtTask(str) {
+    let s = esc(str);
+    // Перенос строки перед ключевыми маркерами
+    s = s.replace(/— /g, '<br>— ');
+    s = s.replace(/(Макет:)/g, '<br><strong>$1</strong>');
+    s = s.replace(PM_MARK, '<span class="tag tag-pm">Задача от PM</span>');
+    s = s.replace(HARD_MARK, '<span class="tag tag-hard">Сложная</span>');
+    return s;
   }
-}
 
-function saveLabProgress(progress) {
-  localStorage.setItem(LAB_STORAGE_KEY, JSON.stringify(progress));
-}
-
-let labProgress = loadLabProgress();
-
-function esc(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function fmtTask(str) {
-  let s = esc(str);
-  // Visual line break before key markers
-  s = s.replace(/— /g, '<br>— ');
-  s = s.replace(/(Макет:)/g, '<br><strong>$1</strong>');
-  // Bold PM tasks and hard challenges
-  s = s.replace(/(ЗАДАЧА ОТ PM:)/g, '<strong class="pm-tag">$1</strong>');
-  s = s.replace(/(СЛОЖНАЯ ЗАДАЧА:)/g, '<strong class="hard-tag">$1</strong>');
-  return s;
-}
-
-function fmtHint(str) {
-  let s = esc(str);
-  // Break hints at sentence boundaries for readability
-  s = s.replace(/\. ([A-ZА-ЯЁ])/g, '.<br>$1');
-  return s;
-}
-
-function isTaskDone(id) {
-  return labProgress[id] === true;
-}
-
-function toggleTask(id) {
-  if (labProgress[id]) {
-    delete labProgress[id];
-  } else {
-    labProgress[id] = true;
+  function fmtHint(str) {
+    // Разбиваем подсказку по предложениям, чтобы её было легче читать
+    return esc(str).replace(/\. ([A-ZА-ЯЁ])/g, '.<br>$1');
   }
-  saveLabProgress(labProgress);
-  updateLabProgress();
-}
 
-function getAllTaskIds() {
-  const ids = [];
-  LAB_DATA.phases.forEach(phase => {
-    phase.steps.forEach(step => {
-      step.tasks.forEach(task => ids.push(task.id));
-    });
-  });
-  return ids;
-}
+  function plainTitle(text) {
+    const clean = text.replace(PM_MARK, '').replace(HARD_MARK, '').trim();
+    return clean.length > 150 ? clean.slice(0, 150).trimEnd() + '…' : clean;
+  }
 
-function getPhaseTaskIds(phase) {
-  const ids = [];
-  phase.steps.forEach(step => {
-    step.tasks.forEach(task => ids.push(task.id));
-  });
-  return ids;
-}
+  function taskHtml(task) {
+    const hint = task.hint
+      ? `<div class="extras">
+           <details class="extra">
+             <summary>Подсказка</summary>
+             <div class="extra-body">${fmtHint(task.hint)}</div>
+           </details>
+         </div>`
+      : '';
+    return `<div class="item-text">${fmtTask(task.text)}</div>${hint}`;
+  }
 
-function getStepTaskIds(step) {
-  return step.tasks.map(t => t.id);
-}
-
-function countDone(ids) {
-  return ids.filter(id => isTaskDone(id)).length;
-}
-
-function updateLabProgress() {
-  const allIds = getAllTaskIds();
-  const totalDone = countDone(allIds);
-  const total = allIds.length;
-  const pct = total === 0 ? 0 : Math.round((totalDone / total) * 100);
-
-  document.getElementById('overall-progress-fill').style.width = pct + '%';
-  document.getElementById('overall-progress-text').textContent = `${totalDone} / ${total}`;
-
-  LAB_DATA.phases.forEach(phase => {
-    const phaseIds = getPhaseTaskIds(phase);
-    const phaseDone = countDone(phaseIds);
-    const phaseTotal = phaseIds.length;
-
-    const navProg = document.getElementById(`nav-prog-${phase.id}`);
-    if (navProg) {
-      navProg.textContent = `${phaseDone}/${phaseTotal}`;
-      navProg.classList.toggle('done', phaseDone === phaseTotal);
-    }
-
-    const phaseFill = document.getElementById(`phase-fill-${phase.id}`);
-    const phaseText = document.getElementById(`phase-text-${phase.id}`);
-    if (phaseFill) {
-      const p = phaseTotal === 0 ? 0 : Math.round((phaseDone / phaseTotal) * 100);
-      phaseFill.style.width = p + '%';
-    }
-    if (phaseText) {
-      phaseText.textContent = `${phaseDone}/${phaseTotal}`;
-    }
-
-    phase.steps.forEach(step => {
-      const stepIds = getStepTaskIds(step);
-      const stepDone = countDone(stepIds);
-      const stepTotal = stepIds.length;
-
-      const badge = document.getElementById(`step-badge-${step.id}`);
-      if (badge) {
-        badge.textContent = `${stepDone}/${stepTotal}`;
-        badge.classList.toggle('all-done', stepDone === stepTotal);
-      }
-
-      step.tasks.forEach(task => {
-        const box = document.getElementById(`box-${task.id}`);
-        const item = document.getElementById(`item-${task.id}`);
-        if (box) box.classList.toggle('checked', isTaskDone(task.id));
-        if (item) item.classList.toggle('done', isTaskDone(task.id));
-      });
-    });
-  });
-}
-
-function renderLabNav() {
-  const nav = document.getElementById('nav-list');
   let stepCounter = 0;
-  nav.innerHTML = LAB_DATA.phases.map((phase, pi) => {
-    const phaseIds = getPhaseTaskIds(phase);
-    const done = countDone(phaseIds);
-    const total = phaseIds.length;
+  let phaseCounter = 0;
 
-    const stepsHtml = phase.steps.map(step => {
-      stepCounter++;
-      return `
-        <li class="nav-sub-item">
-          <a class="nav-sub-link" href="#${step.id}" data-section="${step.id}">
-            <span class="nav-step-num">${stepCounter}</span>
-            <span class="nav-step-title">${step.title}</span>
-          </a>
-        </li>
-      `;
-    }).join('');
+  const sections = LAB_DATA.phases.map(phase => ({
+    id: 'phase-' + phase.id,
+    num: phase.bonus ? '★' : 'P' + ++phaseCounter,
+    title: phase.title,
+    description: phase.description,
+    optional: Boolean(phase.bonus),
+    cards: phase.steps.map(step => ({
+      id: step.id,
+      num: step.num || String(++stepCounter),
+      title: step.title,
+      topHtml: `
+        <div class="note note-why">
+          <span class="note-label">Зачем</span>
+          ${esc(step.why)}
+        </div>
+        <div class="covers">${step.covers.map(c => `<span>${esc(c)}</span>`).join('')}</div>`,
+      bottomHtml: `
+        <div class="note note-checkpoint">
+          <span class="note-label">Чекпоинт</span>
+          ${esc(step.checkpoint)}
+        </div>`,
+      items: step.tasks.map(task => ({
+        id: task.id,
+        title: plainTitle(task.text),
+        search: task.text + ' ' + (task.hint || '') + ' ' + step.covers.join(' '),
+        html: taskHtml(task),
+      })),
+    })),
+  }));
 
-    return `
-      <li class="nav-phase">
-        <a class="nav-link" href="#phase-${phase.id}" data-section="phase-${phase.id}">
-          <span class="nav-icon">P${pi + 1}</span>
-          <span class="nav-label">${phase.title}</span>
-          <span class="nav-progress ${done === total ? 'done' : ''}" id="nav-prog-${phase.id}">${done}/${total}</span>
-        </a>
-        <ul class="nav-sub-list">${stepsHtml}</ul>
-      </li>
-    `;
-  }).join('');
+  document.getElementById('lab-intro').textContent = LAB_DATA.description;
 
-  nav.querySelectorAll('a[data-section]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const id = link.dataset.section;
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      closeSidebar();
-    });
+  Tracker.init({
+    page: 'lab',
+    storageKey: Tracker.LAB_KEY,
+    sections,
+    navCards: true,
+    news: {
+      id: 'lab-2026-11',
+      html: `
+        <strong>Обновление, ноябрь 2026. Все твои галочки на месте, номера шагов не изменились.</strong>
+        <ul>
+          <li>Новый бонус-трек в конце — <a href="#phase-under-hood">«Под капотом: свой бэкенд»</a>. Свой сервер на чистом Node.js, SQLite, CORS и cookies с обеих сторон. Его можно проходить в любой момент, параллельно с основным проектом.</li>
+          <li>Задачи актуализированы под текущие версии: Tailwind 4, Vite 8, React Router 7, Nuxt 4, TanStack Query 5, Node.js 24/26.</li>
+          <li>Удобства: кнопка «Продолжить», поиск, «Скрыть выполненное», светлая тема, экспорт прогресса.</li>
+        </ul>`,
+    },
   });
-}
-
-function renderLabMain() {
-  const main = document.getElementById('main-content');
-  let stepCounter = 0;
-
-  main.innerHTML = LAB_DATA.phases.map((phase, pi) => {
-    const phaseIds = getPhaseTaskIds(phase);
-    const phaseDone = countDone(phaseIds);
-    const phaseTotal = phaseIds.length;
-
-    const stepsHtml = phase.steps.map(step => {
-      stepCounter++;
-      const stepIds = getStepTaskIds(step);
-      const stepDone = countDone(stepIds);
-      const stepTotal = stepIds.length;
-      const allDone = stepDone === stepTotal;
-
-      const tasksHtml = step.tasks.map((task, ti) => {
-        const checked = isTaskDone(task.id);
-        const hintHtml = task.hint ? `
-          <button class="hint-toggle" onclick="this.closest('.task-item').classList.toggle('show-hint')">&#9881; подсказка</button>
-          <div class="task-hint">${fmtHint(task.hint)}</div>
-        ` : '';
-        return `
-          <div class="task-item ${checked ? 'done' : ''}" id="item-${task.id}">
-            <div class="task-box ${checked ? 'checked' : ''}" id="box-${task.id}" onclick="toggleTask('${task.id}')"></div>
-            <div class="task-content">
-              <div class="task-text">${fmtTask(task.text)}</div>
-              ${hintHtml}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      const coversHtml = step.covers.map(c => `<span class="cover-tag">${esc(c)}</span>`).join('');
-
-      return `
-        <div class="step" id="${step.id}">
-          <div class="step-header" onclick="this.parentElement.classList.toggle('open')">
-            <div class="step-title-row">
-              <span class="step-number">${stepCounter}</span>
-              <h3 class="step-title">${step.title}</h3>
-            </div>
-            <div class="step-meta">
-              <span class="step-badge ${allDone ? 'all-done' : ''}" id="step-badge-${step.id}">${stepDone}/${stepTotal}</span>
-              <span class="step-chevron">&#9654;</span>
-            </div>
-          </div>
-          <div class="step-body">
-            <div class="step-why">
-              <div class="why-label">&#127919; Зачем</div>
-              <p>${esc(step.why)}</p>
-            </div>
-            <div class="step-covers">
-              <span class="covers-label">Покрывает:</span>
-              ${coversHtml}
-            </div>
-            <div class="step-tasks">
-              ${tasksHtml}
-            </div>
-            <div class="step-checkpoint">
-              <div class="checkpoint-label">&#9989; Чекпоинт</div>
-              <p>${esc(step.checkpoint)}</p>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <section class="phase" id="phase-${phase.id}">
-        <div class="phase-header">
-          <div class="phase-number">P${pi + 1}</div>
-          <div>
-            <h2 class="phase-title">${phase.title}</h2>
-            <p class="phase-description">${phase.description}</p>
-          </div>
-        </div>
-        <div class="phase-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" id="phase-fill-${phase.id}" style="width:${phaseTotal ? Math.round(phaseDone/phaseTotal*100) : 0}%"></div>
-          </div>
-          <span class="progress-text" id="phase-text-${phase.id}">${phaseDone}/${phaseTotal}</span>
-        </div>
-        ${stepsHtml}
-      </section>
-    `;
-  }).join('');
-}
-
-// Sidebar mobile
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  const overlay = document.querySelector('.sidebar-overlay');
-  if (overlay) overlay.classList.remove('visible');
-}
-
-document.getElementById('sidebar-toggle').addEventListener('click', () => {
-  const sidebar = document.getElementById('sidebar');
-  sidebar.classList.toggle('open');
-  let overlay = document.querySelector('.sidebar-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    overlay.addEventListener('click', closeSidebar);
-    document.body.appendChild(overlay);
-  }
-  overlay.classList.toggle('visible', sidebar.classList.contains('open'));
-});
-
-// Active nav
-function updateActiveNav() {
-  const elements = document.querySelectorAll('.step, .phase');
-  let current = '';
-
-  // At bottom of page — highlight last item
-  const atBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 50);
-  if (atBottom && elements.length > 0) {
-    current = elements[elements.length - 1].id;
-  } else {
-    elements.forEach(el => {
-      const top = el.getBoundingClientRect().top;
-      if (top < 200) current = el.id;
-    });
-  }
-
-  document.querySelectorAll('.nav-link, .nav-sub-link').forEach(link => {
-    link.classList.toggle('active', link.dataset.section === current);
-  });
-}
-
-window.addEventListener('scroll', updateActiveNav, { passive: true });
-
-// Init
-renderLabNav();
-renderLabMain();
-updateLabProgress();
-updateActiveNav();
+})();

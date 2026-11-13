@@ -12,6 +12,10 @@ const ROADMAP_DATA = [
           { id: "cpu-memory", text: "CPU, RAM, HDD/SSD — что делает каждый компонент", tip: "Не нужно знать на уровне электроники, но нужно понимать зачем нужна оперативка и почему SSD быстрее HDD." },
           { id: "os-basics", text: "Операционная система: процессы, потоки, файловая система", tip: "Понимание процессов поможет понять почему Node.js однопоточный и зачем нужны Web Workers." },
           { id: "terminal-basics", text: "Терминал/командная строка: базовые команды (cd, ls, mkdir, rm, cat, grep)", tip: "Без терминала невозможно нормально работать с git, npm, сборщиками." },
+          { id: "data-encoding", isNew: true, text: "Биты, байты и кодировки: как хранятся текст, числа и картинки (UTF-8, Base64)", tip: "Всё в компьютере — числа. Строка — последовательность кодов символов, файл — последовательность байтов. Отсюда «кракозябры», `0.1 + 0.2 !== 0.3` и разница между длиной строки и её размером в байтах." },
+          { id: "processes-ports", isNew: true, text: "Процессы и порты: что значит «сервер слушает localhost:3000»", tip: "Dev-сервер — обычная программа (процесс), которая попросила у ОС порт и ждёт входящих соединений. Ошибка EADDRINUSE = порт уже занят другим процессом." },
+          { id: "how-code-runs", isNew: true, text: "Как выполняется код: компиляция и интерпретация, движок V8, JIT, рантаймы (браузер и Node.js)", tip: "JavaScript — это язык, а браузер и Node.js — разные окружения вокруг движка. `document` есть только в браузере, `fs` — только в Node. `fetch` и `setTimeout` дают оба, но это API окружения, а не языка." },
+          { id: "memory-gc", isNew: true, text: "Память: стек и куча, значения и ссылки, сборка мусора, утечки памяти", tip: "Примитивы копируются по значению, объекты — по ссылке. Отсюда иммутабельность в React и баги «поменяла копию — изменился оригинал». Утечка = на ненужный объект всё ещё кто-то ссылается." },
         ]
       },
       {
@@ -23,6 +27,10 @@ const ROADMAP_DATA = [
           { id: "rest-api", text: "REST API: принципы, проектирование, документация", tip: "Понимание REST нужно для работы с любым бэкендом." },
           { id: "websockets", text: "WebSockets: real-time коммуникация", tip: "Чаты, нотификации, real-time обновления — всё это WebSockets." },
           { id: "web-server", text: "Веб-сервер: что это, nginx basics, как отдаётся статика", tip: "Nginx — самый популярный веб-сервер. Понимание как он проксирует запросы критично для деплоя." },
+          { id: "url-journey", isNew: true, text: "Сквозная история: что происходит от ввода URL до картинки на экране", tip: "Главный вопрос собеседований и лучший тест на базу: DNS → TCP → TLS → HTTP-запрос → сервер → ответ → парсинг → рендер. Можешь рассказывать 5 минут без запинки — фундамент есть." },
+          { id: "http-caching", isNew: true, text: "Кеширование HTTP: Cache-Control, ETag, статус 304, CDN", tip: "Почему после деплоя пользователи видят старую версию и зачем сборщик добавляет хеш в имена файлов (`app.3f9a1c.js`)." },
+          { id: "auth-basics", isNew: true, text: "Как сервер узнаёт тебя: cookies и сессии, JWT, OAuth на пальцах", tip: "HTTP не помнит прошлых запросов (stateless). Каждый запрос должен нести доказательство «это я»: cookie с id сессии или токен в заголовке Authorization." },
+          { id: "same-origin-cors", isNew: true, text: "Same-origin policy и CORS: почему браузер блокирует запрос, а curl — нет", tip: "CORS — не защита сервера, а правило браузера: чужой сайт не может читать ответы твоего API от имени пользователя, пока сервер явно не разрешит." },
         ]
       },
       {
@@ -35,6 +43,16 @@ const ROADMAP_DATA = [
         ]
       },
       {
+        id: "backend-basics",
+        title: "По ту сторону: сервер и данные",
+        isNew: true,
+        items: [
+          { id: "server-anatomy", isNew: true, text: "Что делает бэкенд: запрос → роутинг → логика → база данных → ответ", tip: "Бэкенд — не магия, а программа, которая читает текст HTTP-запроса и пишет текст ответа. Напиши один сервер руками (бонус-трек в Mega Lab) — и API перестанет быть чёрным ящиком." },
+          { id: "databases-sql", isNew: true, text: "Базы данных: таблицы, SQL (SELECT, WHERE, JOIN), индексы, SQL vs NoSQL", tip: "Пагинация, сортировка и поиск в любом API — это LIMIT/OFFSET, ORDER BY и WHERE в запросе к базе. Десяти базовых запросов хватит, чтобы говорить с бэкендерами на одном языке." },
+          { id: "linux-ssh", isNew: true, text: "Сервер — это чужой компьютер: Linux, SSH, права на файлы, логи", tip: "Почти весь продакшен работает на Linux. Зайти по SSH, посмотреть логи, проверить, жив ли процесс — базовый навык на случай «на проде не работает»." },
+        ]
+      },
+      {
         id: "cs-resources",
         title: "Ресурсы",
         isResources: true,
@@ -42,6 +60,9 @@ const ROADMAP_DATA = [
           { id: "r-cs50", text: "CS50 (Harvard) — бесплатный курс по основам CS", link: "https://cs50.harvard.edu/x/", tip: "Лучший вводный курс по CS. Можно пройти первые 5 лекций для понимания основ." },
           { id: "r-how-web-works", text: "How the Web Works (MDN)", link: "https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/How_the_Web_works", tip: "Отличная статья от Mozilla." },
           { id: "r-http-mdn", text: "HTTP Overview (MDN)", link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview" },
+          { id: "r-how-browsers-work", text: "How browsers work (web.dev)", link: "https://web.dev/articles/howbrowserswork", tip: "Большая статья о том, как браузер превращает HTML и CSS в пиксели." },
+          { id: "r-hpbn", text: "High Performance Browser Networking (книга, бесплатно)", link: "https://hpbn.co/", tip: "TCP, TLS, HTTP/2, WebSocket глазами фронтендера. Читать главы выборочно." },
+          { id: "r-sqlbolt", text: "SQLBolt — интерактивный тренажёр SQL", link: "https://sqlbolt.com/", tip: "18 коротких уроков прямо в браузере. Хватит на базовый SQL." },
         ]
       }
     ]
@@ -100,7 +121,7 @@ const ROADMAP_DATA = [
           { id: "ts-types", text: "Базовые типы: primitives, arrays, objects, union, intersection", tip: "string | number, {name: string} & {age: number}" },
           { id: "ts-interfaces", text: "Interfaces vs Types: когда что использовать", tip: "interface для объектов и классов, type для unions и сложных типов. На практике оба работают." },
           { id: "ts-generics", text: "Generics: обобщённые типы, constraints, defaults", tip: "Array<T>, Promise<T> — всё это generics. Научись писать свои." },
-          { id: "ts-enums", text: "Enums, const assertions, literal types", tip: "as const часто лучше enum. Понимать trade-offs." },
+          { id: "ts-enums", text: "Enums, const assertions, literal types", tip: "`as const` или union строк обычно лучше enum: enum генерирует runtime-код и несовместим с `erasableSyntaxOnly` и запуском TS напрямую в Node.js." },
           { id: "ts-narrowing", text: "Type narrowing: typeof, instanceof, discriminated unions, type guards", tip: "TypeScript умеет сужать типы через проверки. Это ключ к безопасному коду." },
         ]
       },
@@ -110,7 +131,7 @@ const ROADMAP_DATA = [
         items: [
           { id: "ts-utility", text: "Utility types: Partial, Required, Pick, Omit, Record, ReturnType", tip: "Встроенные хелперы которые экономят кучу кода." },
           { id: "ts-conditional", text: "Conditional types, infer, mapped types", tip: "T extends string ? A : B — мощный инструмент для type-level программирования." },
-          { id: "ts-strict", text: "Strict mode, tsconfig настройка, path aliases", tip: "strict: true — всегда. Понимать что включает каждый strict-флаг." },
+          { id: "ts-strict", text: "Strict mode, tsconfig настройка, path aliases", tip: "strict: true — всегда (в новых версиях TypeScript он включён по умолчанию). Понимать, что включает каждый strict-флаг. Компилятор TypeScript 7 переписан на Go и работает в разы быстрее." },
           { id: "ts-declaration", text: "Declaration files (.d.ts), DefinitelyTyped", tip: "Как типизировать JS-библиотеку без типов." },
         ]
       },
@@ -138,7 +159,7 @@ const ROADMAP_DATA = [
         items: [
           { id: "flexbox-deep", text: "Flexbox: все свойства, flex-grow/shrink/basis, выравнивание", tip: "Не просто display:flex + justify-content. Понимать как работает flex-basis и когда элементы сжимаются." },
           { id: "grid-deep", text: "CSS Grid: grid-template, areas, auto-fit/auto-fill, subgrid", tip: "Grid — для 2D-лейаутов. Subgrid — для выравнивания вложенных сеток." },
-          { id: "responsive", text: "Responsive design: media queries, container queries, clamp()", tip: "Container queries — новый стандарт. clamp() для fluid typography." },
+          { id: "responsive", text: "Responsive design: media queries, container queries, clamp()", tip: "Container queries работают во всех браузерах: компонент адаптируется к своему контейнеру, а не к экрану. clamp() для fluid typography." },
           { id: "css-variables", text: "CSS Custom Properties (переменные): наследование, fallbacks, динамические темы", tip: "var(--color-primary) — основа для темизации." },
         ]
       },
@@ -146,10 +167,10 @@ const ROADMAP_DATA = [
         id: "css-architecture",
         title: "Архитектура стилей",
         items: [
-          { id: "css-methodology", text: "Методологии: BEM, CSS Modules, CSS-in-JS", tip: "BEM — для классического CSS. CSS Modules — для React/Vue. Tailwind — utility-first." },
+          { id: "css-methodology", text: "Методологии: BEM, CSS Modules, CSS-in-JS", tip: "BEM — для классического CSS. CSS Modules — для React/Vue. Tailwind — utility-first. Каскадные слои (@layer) и :has() — современные способы управлять стилями без войны специфичности." },
           { id: "preprocessors", text: "Препроцессоры: SCSS/Sass basics (переменные, миксины, nesting)", tip: "SCSS всё ещё часто используется. Нативный CSS nesting уже в браузерах." },
-          { id: "tailwind", text: "Tailwind CSS: utility-first подход, кастомизация", tip: "Очень популярен. Много вакансий требуют. Спорный, но нужно уметь." },
-          { id: "animations", text: "Анимации: transitions, keyframes, transform, will-change, FLIP", tip: "Анимировать только transform и opacity для 60fps. FLIP — паттерн для сложных анимаций." },
+          { id: "tailwind", text: "Tailwind CSS: utility-first подход, кастомизация", tip: "Очень популярен, много вакансий требуют. В Tailwind 4 конфигурация живёт прямо в CSS (`@import 'tailwindcss'` и `@theme`), tailwind.config.js больше не нужен." },
+          { id: "animations", text: "Анимации: transitions, keyframes, transform, will-change, FLIP", tip: "Анимировать только transform и opacity для 60fps. FLIP — паттерн для сложных анимаций. View Transitions API — анимированные переходы между состояниями и страницами." },
         ]
       },
       {
@@ -175,7 +196,7 @@ const ROADMAP_DATA = [
         title: "Core Concepts",
         items: [
           { id: "jsx", text: "JSX, компоненты, props, children", tip: "JSX — не HTML. Это JavaScript выражения. Компоненты — функции которые возвращают JSX." },
-          { id: "state-hooks", text: "State & Hooks: useState, useEffect, useRef, useCallback, useMemo", tip: "Hooks — основа React. useEffect — самый сложный хук. Понимать dependency array и cleanup." },
+          { id: "state-hooks", text: "State & Hooks: useState, useEffect, useRef, useCallback, useMemo", tip: "Hooks — основа React. useEffect — самый сложный хук. Понимать dependency array и cleanup. В React 19 добавились use, useActionState и useOptimistic." },
           { id: "component-patterns", text: "Паттерны: Composition, Render Props, HOC, Custom Hooks", tip: "Custom Hooks — главный паттерн переиспользования логики в React." },
           { id: "react-forms", text: "Формы: controlled vs uncontrolled, React Hook Form, Zod/Yup валидация", tip: "В CRM формы — 80% работы. React Hook Form + Zod — современный стандарт." },
           { id: "react-context", text: "Context API: когда использовать, когда нет, оптимизация", tip: "Context — не замена state manager. Используй для тем, локали, авторизации." },
@@ -185,11 +206,11 @@ const ROADMAP_DATA = [
         id: "react-ecosystem",
         title: "Экосистема React",
         items: [
-          { id: "react-router", text: "React Router v6+: routing, nested routes, loaders", tip: "Основной роутер для React SPA." },
+          { id: "react-router", text: "React Router v7: routing, nested routes, loaders", tip: "Основной роутер для React SPA. В v7 объединился с Remix: работает и как библиотека, и как полноценный фреймворк. Альтернатива с упором на типы — TanStack Router." },
           { id: "state-management", text: "State Management: Zustand, Redux Toolkit, Jotai — когда что", tip: "Zustand — простой и лёгкий. Redux Toolkit — для больших приложений. Jotai — атомарный подход." },
           { id: "react-query", text: "TanStack Query (React Query): серверный стейт, кеширование, мутации", tip: "Изменил подход к работе с API. Не нужно руками писать loading/error/data стейты." },
-          { id: "nextjs", text: "Next.js: SSR, SSG, App Router, Server Components", tip: "Стандарт для production React-приложений. Много вакансий требуют." },
-          { id: "react-ui", text: "UI библиотеки: shadcn/ui, Radix, Material UI", tip: "shadcn/ui — тренд 2024-2025. Копируешь компоненты в проект, полный контроль." },
+          { id: "nextjs", text: "Next.js: SSR, SSG, App Router, Server Components", tip: "Стандарт для production React, много вакансий требуют. В Next.js 16: Turbopack по умолчанию, Server Components и Server Actions, кеширование через Cache Components (`use cache`)." },
+          { id: "react-ui", text: "UI библиотеки: shadcn/ui, Radix, Material UI", tip: "shadcn/ui — стандарт де-факто: компоненты копируются в проект, полный контроль. Под капотом headless-примитивы (Radix, Base UI)." },
         ]
       },
       {
@@ -225,7 +246,7 @@ const ROADMAP_DATA = [
         id: "vue-ecosystem",
         title: "Экосистема Vue",
         items: [
-          { id: "nuxt", text: "Nuxt 3: SSR, auto-imports, file-based routing", tip: "Next.js для Vue. Если знаешь Next.js — Nuxt будет понятен." },
+          { id: "nuxt", text: "Nuxt 4: SSR, auto-imports, file-based routing", tip: "Next.js для Vue. Актуальная версия — Nuxt 4 (код приложения лежит в папке app/); Nuxt 3 больше не поддерживается." },
           { id: "vueuse", text: "VueUse: коллекция готовых composables", tip: "200+ готовых composables. useLocalStorage, useDark, useIntersectionObserver..." },
           { id: "vue-testing", text: "Vue Test Utils + Vitest для компонентов", tip: "Тестирование компонентов Vue." },
         ]
@@ -262,9 +283,9 @@ const ROADMAP_DATA = [
         id: "bundlers",
         title: "Сборщики",
         items: [
-          { id: "vite", text: "Vite: почему быстрый, dev server, HMR, плагины, конфигурация", tip: "Vite использует ESM в dev mode = мгновенный старт. Для production — Rollup. Стандарт для Vue, популярен для React." },
-          { id: "webpack-basics", text: "Webpack: loaders, plugins, entry/output, code splitting (legacy но нужно знать)", tip: "Webpack — легаси, но огромное количество проектов на нём. Нужно уметь хотя бы читать webpack.config.js." },
-          { id: "esbuild-swc", text: "esbuild, SWC, Turbopack — новое поколение сборщиков", tip: "Написаны на Go/Rust = в 10-100 раз быстрее webpack. Next.js использует SWC/Turbopack." },
+          { id: "vite", text: "Vite: почему быстрый, dev server, HMR, плагины, конфигурация", tip: "В dev отдаёт модули через нативный ESM — мгновенный старт. С Vite 8 сборкой занимается Rolldown, бандлер на Rust (заменил связку esbuild + Rollup). Стандарт де-факто для Vue и React SPA." },
+          { id: "webpack-basics", text: "Webpack: loaders, plugins, entry/output, code splitting (legacy но нужно знать)", tip: "Webpack — легаси, но огромное количество проектов на нём. Нужно уметь хотя бы читать webpack.config.js. Rspack — совместимая с ним быстрая замена на Rust." },
+          { id: "esbuild-swc", text: "Rolldown, Oxc, SWC, esbuild, Turbopack — инструменты нового поколения на Rust и Go", tip: "В 10–100 раз быстрее инструментов на JS. Vite работает на Rolldown и Oxc, Next.js — на Turbopack и SWC. Даже компилятор TypeScript 7 переписан на Go." },
           { id: "bundler-concepts", text: "Tree shaking, code splitting, lazy loading, chunks, source maps", tip: "Понимать как сборщик убирает неиспользуемый код и разбивает бандл на части." },
         ]
       },
@@ -272,7 +293,7 @@ const ROADMAP_DATA = [
         id: "code-quality",
         title: "Качество кода",
         items: [
-          { id: "eslint", text: "ESLint: настройка, правила, плагины, flat config (новый формат)", tip: "ESLint 9+ использует flat config (eslint.config.js). Знать популярные плагины: @typescript-eslint, eslint-plugin-react." },
+          { id: "eslint", text: "ESLint: настройка, правила, плагины, flat config (новый формат)", tip: "Единственный формат конфига — flat config (eslint.config.js): в ESLint 10 старый .eslintrc удалён. Плагины: typescript-eslint, eslint-plugin-react-hooks. Быстрые альтернативы на Rust — Oxlint и Biome." },
           { id: "prettier", text: "Prettier: настройка, интеграция с ESLint", tip: "Prettier для форматирования, ESLint для логики. Не путать их задачи." },
           { id: "husky-lint-staged", text: "Husky + lint-staged: pre-commit hooks", tip: "Автоматическая проверка кода перед коммитом. Обязательно в каждом проекте." },
           { id: "editorconfig", text: "EditorConfig, .nvmrc, настройка VSCode для проекта", tip: "Чтобы у всей команды были одинаковые настройки редактора." },
@@ -283,7 +304,7 @@ const ROADMAP_DATA = [
         title: "Ресурсы",
         isResources: true,
         items: [
-          { id: "r-vite-docs", text: "Vite Documentation", link: "https://vitejs.dev/" },
+          { id: "r-vite-docs", text: "Vite Documentation", link: "https://vite.dev/" },
           { id: "r-eslint-docs", text: "ESLint Getting Started", link: "https://eslint.org/docs/latest/use/getting-started" },
           { id: "r-git-book", text: "Pro Git Book (бесплатно)", link: "https://git-scm.com/book/en/v2", tip: "Лучшая книга по Git. Читать главы 2, 3, 7." },
         ]
@@ -338,7 +359,7 @@ const ROADMAP_DATA = [
         id: "hosting",
         title: "Хостинг и деплой",
         items: [
-          { id: "static-hosting", text: "Статический хостинг: Vercel, Netlify, GitHub Pages", tip: "Vercel — идеален для Next.js. Netlify — для статики и Vue/Nuxt. GitHub Pages — для простых сайтов." },
+          { id: "static-hosting", text: "Статический хостинг: Vercel, Netlify, Cloudflare Pages, GitHub Pages", tip: "Vercel — идеален для Next.js. Netlify — для статики и Vue/Nuxt. GitHub Pages — для простых сайтов." },
           { id: "domain-dns", text: "Домены, DNS записи (A, CNAME, MX), SSL/TLS сертификаты", tip: "Как привязать домен к хостингу. Let's Encrypt для бесплатного SSL." },
           { id: "nginx-config", text: "Nginx: конфигурация, reverse proxy, SPA routing, HTTPS", tip: "try_files $uri /index.html — волшебная строка для SPA. Proxy_pass для API." },
           { id: "pm2-systemd", text: "Process managers: PM2, systemd — как держать Node.js сервер живым", tip: "PM2 для Node.js приложений. Автоперезапуск при падении." },
@@ -375,10 +396,10 @@ const ROADMAP_DATA = [
         id: "performance",
         title: "Производительность",
         items: [
-          { id: "core-web-vitals", text: "Core Web Vitals: LCP, FID/INP, CLS — что это и как оптимизировать", tip: "Google ранжирует по этим метрикам. Lighthouse для измерения." },
+          { id: "core-web-vitals", text: "Core Web Vitals: LCP, INP, CLS — что это и как оптимизировать", tip: "Google ранжирует по этим метрикам. INP заменил FID в 2024 году. Lighthouse и DevTools → Performance для измерения." },
           { id: "lazy-loading", text: "Lazy loading: React.lazy, dynamic import(), Intersection Observer", tip: "Не грузить всё сразу. Lazy load для роутов, изображений, компонентов." },
           { id: "image-optimization", text: "Оптимизация изображений: WebP/AVIF, srcset, next/image", tip: "Изображения — главная причина медленных сайтов." },
-          { id: "memoization", text: "Мемоизация: React.memo, useMemo, useCallback — когда реально нужно", tip: "Не мемоизировать всё подряд. Только если есть измеримая проблема." },
+          { id: "memoization", text: "Мемоизация: React.memo, useMemo, useCallback — когда реально нужно", tip: "Не мемоизировать всё подряд. Только если есть измеримая проблема. React Compiler мемоизирует автоматически, так что ручные useMemo/useCallback нужны всё реже." },
         ]
       },
       {
@@ -436,6 +457,7 @@ const ROADMAP_DATA = [
           { id: "code-review", text: "Code Review: как давать и принимать фидбек", tip: "Конструктивно, без перехода на личности. 'А что если...' вместо 'Это неправильно'." },
           { id: "estimation", text: "Оценка задач: декомпозиция, story points, буферы на неизвестное", tip: "Умножай свою оценку на 2. Серьёзно." },
           { id: "communication", text: "Коммуникация: как объяснять технические решения нетехническим людям", tip: "Менеджеру не нужно знать про Proxy и WeakMap. Ему нужно знать 'будет быстрее и надёжнее'." },
+          { id: "ai-tools", isNew: true, text: "AI-инструменты в работе (Claude Code, Copilot, Cursor): ускоряться и не терять понимание", tip: "На собеседованиях всё чаще спрашивают, как ты используешь AI. Он пишет быстрее, но за код отвечаешь ты. База из первого раздела — как раз то, что позволяет проверять и чинить сгенерированное." },
         ]
       },
       {
@@ -451,3 +473,18 @@ const ROADMAP_DATA = [
     ]
   }
 ];
+
+// Какие фазы Mega Lab закрепляют раздел роадмапа: [id фазы, название]
+const SECTION_LAB = {
+  "fundamentals": [["recon", "Разведка"], ["under-hood", "Под капотом"]],
+  "js-deep": [["javascript", "JavaScript глубоко"]],
+  "typescript": [["typescript", "TypeScript мастерство"]],
+  "css-advanced": [["css", "Полировка магазина"]],
+  "react": [["react", "Магазин покупателя"]],
+  "vue": [["vue", "Админ-панель"]],
+  "tooling": [["foundation", "Фундамент проекта"]],
+  "testing": [["testing", "Тестирование"]],
+  "devops": [["devops", "DevOps и деплой"]],
+  "architecture": [["polish", "Архитектура и шлифовка"]],
+  "interviews": [["finish", "Портфолио и собеседования"]]
+};

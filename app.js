@@ -1,271 +1,119 @@
-const STORAGE_KEY = 'nastya-roadmap-progress';
+// Роадмап: превращает ROADMAP_DATA + CHECKS в формат Tracker и запускает страницу.
+(function () {
+  'use strict';
 
-function loadProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
+  const { esc, fmt } = Tracker;
 
-function saveProgress(progress) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-}
+  function checksHtml(id) {
+    const check = (typeof CHECKS !== 'undefined' && CHECKS[id]) || {};
+    const parts = [];
 
-let progress = loadProgress();
-
-function esc(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function isChecked(id) {
-  return progress[id] === true;
-}
-
-function toggleCheck(id) {
-  if (progress[id]) {
-    delete progress[id];
-  } else {
-    progress[id] = true;
-  }
-  saveProgress(progress);
-  updateAllProgress();
-}
-
-function getAllCheckableItems() {
-  const items = [];
-  ROADMAP_DATA.forEach(section => {
-    section.topics.forEach(topic => {
-      if (!topic.isResources) {
-        topic.items.forEach(item => items.push(item.id));
-      }
-    });
-  });
-  return items;
-}
-
-function getSectionCheckableItems(section) {
-  const items = [];
-  section.topics.forEach(topic => {
-    if (!topic.isResources) {
-      topic.items.forEach(item => items.push(item.id));
-    }
-  });
-  return items;
-}
-
-function getTopicCheckableItems(topic) {
-  if (topic.isResources) return [];
-  return topic.items.map(item => item.id);
-}
-
-function calcProgress(ids) {
-  if (ids.length === 0) return 0;
-  const done = ids.filter(id => isChecked(id)).length;
-  return Math.round((done / ids.length) * 100);
-}
-
-function updateAllProgress() {
-  // Overall
-  const allItems = getAllCheckableItems();
-  const overallPct = calcProgress(allItems);
-  document.getElementById('overall-progress-fill').style.width = overallPct + '%';
-  document.getElementById('overall-progress-text').textContent = overallPct + '%';
-
-  // Sections
-  ROADMAP_DATA.forEach(section => {
-    const sectionItems = getSectionCheckableItems(section);
-    const sectionPct = calcProgress(sectionItems);
-
-    const sectionFill = document.getElementById(`section-progress-${section.id}`);
-    const sectionText = document.getElementById(`section-progress-text-${section.id}`);
-    if (sectionFill) sectionFill.style.width = sectionPct + '%';
-    if (sectionText) sectionText.textContent = sectionPct + '%';
-
-    // Nav
-    const navProgress = document.getElementById(`nav-progress-${section.id}`);
-    if (navProgress) {
-      navProgress.textContent = sectionPct + '%';
-      navProgress.classList.toggle('done', sectionPct === 100);
+    if (check.try) {
+      parts.push(`
+        <details class="extra extra-try">
+          <summary>Попробуй руками</summary>
+          <div class="extra-body">${fmt(check.try)}</div>
+        </details>`);
     }
 
-    // Topics
-    section.topics.forEach(topic => {
-      const topicItems = getTopicCheckableItems(topic);
-      const topicBadge = document.getElementById(`topic-badge-${topic.id}`);
-      if (topicBadge && topicItems.length > 0) {
-        const done = topicItems.filter(id => isChecked(id)).length;
-        topicBadge.textContent = `${done}/${topicItems.length}`;
-        topicBadge.classList.toggle('all-done', done === topicItems.length);
-      }
-    });
+    if (check.q && check.q.length) {
+      const list = check.q
+        .map(
+          ([question, answer]) => `
+            <li>
+              <p class="qa-q">${fmt(question)}</p>
+              <details class="answer">
+                <summary>Показать ответ</summary>
+                <p>${fmt(answer)}</p>
+              </details>
+            </li>`
+        )
+        .join('');
+      parts.push(`
+        <details class="extra extra-check">
+          <summary>Проверь себя · ${check.q.length}</summary>
+          <div class="extra-body"><ol class="qa">${list}</ol></div>
+        </details>`);
+    }
 
-    // Checkboxes
-    section.topics.forEach(topic => {
-      topic.items.forEach(item => {
-        const box = document.getElementById(`box-${item.id}`);
-        const checkItem = document.getElementById(`item-${item.id}`);
-        if (box) {
-          box.classList.toggle('checked', isChecked(item.id));
-        }
-        if (checkItem) {
-          checkItem.classList.toggle('done', isChecked(item.id));
-        }
-      });
-    });
-  });
-}
-
-function renderNav() {
-  const navList = document.getElementById('nav-list');
-  navList.innerHTML = ROADMAP_DATA.map(section => {
-    const sectionItems = getSectionCheckableItems(section);
-    const pct = calcProgress(sectionItems);
-    return `
-      <li class="nav-item">
-        <a class="nav-link" data-section="${section.id}" href="#${section.id}">
-          <span class="nav-icon">${section.icon}</span>
-          <span class="nav-label">${section.title}</span>
-          <span class="nav-progress ${pct === 100 ? 'done' : ''}" id="nav-progress-${section.id}">${pct}%</span>
-        </a>
-      </li>
-    `;
-  }).join('');
-
-  navList.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const sectionId = link.dataset.section;
-      document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
-      closeSidebar();
-    });
-  });
-}
-
-function renderMain() {
-  const main = document.getElementById('main-content');
-  main.innerHTML = ROADMAP_DATA.map(section => {
-    const sectionItems = getSectionCheckableItems(section);
-    const pct = calcProgress(sectionItems);
-
-    const topicsHtml = section.topics.map(topic => {
-      const topicItems = getTopicCheckableItems(topic);
-      let badgeHtml = '';
-      if (topicItems.length > 0) {
-        const done = topicItems.filter(id => isChecked(id)).length;
-        const allDone = done === topicItems.length;
-        badgeHtml = `<span class="topic-badge ${allDone ? 'all-done' : ''}" id="topic-badge-${topic.id}">${done}/${topicItems.length}</span>`;
-      }
-
-      let contentHtml;
-      if (topic.isResources) {
-        contentHtml = topic.items.map(item => {
-          const linkHtml = item.link
-            ? `<a class="resource-link" href="${item.link}" target="_blank" rel="noopener">${item.text}</a>`
-            : `<span>${item.text}</span>`;
-          const tipHtml = item.tip ? `<div class="resource-tip">${esc(item.tip)}</div>` : '';
-          return `
-            <div class="resource-item">
-              <span class="resource-icon">&#128279;</span>
-              ${linkHtml}
-            </div>
-            ${tipHtml}
-          `;
-        }).join('');
-      } else {
-        contentHtml = topic.items.map(item => {
-          const checked = isChecked(item.id);
-          const tipHtml = item.tip ? `
-            <button class="tip-toggle" onclick="this.closest('.check-item').classList.toggle('show-tip')">&#128161; подсказка</button>
-            <div class="check-tip">${esc(item.tip)}</div>
-          ` : '';
-          return `
-            <div class="check-item ${checked ? 'done' : ''}" id="item-${item.id}">
-              <div class="check-box ${checked ? 'checked' : ''}" id="box-${item.id}" onclick="toggleCheck('${item.id}')"></div>
-              <div class="check-text">
-                ${esc(item.text)}
-                ${tipHtml}
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      return `
-        <div class="topic" id="topic-${topic.id}">
-          <div class="topic-header" onclick="this.parentElement.classList.toggle('open')">
-            <span class="topic-title">
-              <span class="icon">${topic.isResources ? '&#128218;' : '&#128204;'}</span>
-              ${topic.title}
-            </span>
-            <div style="display:flex;align-items:center;gap:8px;">
-              ${badgeHtml}
-              <span class="topic-chevron">&#9654;</span>
-            </div>
-          </div>
-          <div class="topic-content">
-            ${contentHtml}
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <section class="section" id="${section.id}">
-        <div class="section-header">
-          <div class="section-number">${section.icon}</div>
-          <h2 class="section-title">${section.title}</h2>
-        </div>
-        <p class="section-description">${section.description}</p>
-        <div class="section-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" id="section-progress-${section.id}" style="width:${pct}%"></div>
-          </div>
-          <span class="progress-text" id="section-progress-text-${section.id}">${pct}%</span>
-        </div>
-        ${topicsHtml}
-      </section>
-    `;
-  }).join('');
-}
-
-// Sidebar toggle for mobile
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  const overlay = document.querySelector('.sidebar-overlay');
-  if (overlay) overlay.classList.remove('visible');
-}
-
-document.getElementById('sidebar-toggle').addEventListener('click', () => {
-  const sidebar = document.getElementById('sidebar');
-  sidebar.classList.toggle('open');
-  let overlay = document.querySelector('.sidebar-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    overlay.addEventListener('click', closeSidebar);
-    document.body.appendChild(overlay);
+    return parts.length ? `<div class="extras">${parts.join('')}</div>` : '';
   }
-  overlay.classList.toggle('visible', sidebar.classList.contains('open'));
-});
 
-// Active nav tracking on scroll
-function updateActiveNav() {
-  const sections = document.querySelectorAll('.section');
-  let current = '';
-  sections.forEach(section => {
-    const top = section.getBoundingClientRect().top;
-    if (top < 200) current = section.id;
+  function itemHtml(item) {
+    return `
+      <div class="item-text">${item.isNew ? '<span class="tag tag-new">новое</span>' : ''}${fmt(item.text)}</div>
+      ${item.tip ? `<p class="item-tip">${fmt(item.tip)}</p>` : ''}
+      ${checksHtml(item.id)}`;
+  }
+
+  function searchText(item) {
+    const check = (typeof CHECKS !== 'undefined' && CHECKS[item.id]) || {};
+    const questions = (check.q || []).map(pair => pair[0]).join(' ');
+    return [item.text, item.tip || '', questions].join(' ');
+  }
+
+  function resourcesHtml(topic) {
+    const links = topic.items
+      .map(
+        item => `
+          <li>
+            <a href="${esc(item.link)}" target="_blank" rel="noopener">${esc(item.text)} ↗</a>
+            ${item.tip ? `<p class="item-tip">${fmt(item.tip)}</p>` : ''}
+          </li>`
+      )
+      .join('');
+    return `<ul class="links">${links}</ul>`;
+  }
+
+  function labLinksHtml(sectionId) {
+    const links = (typeof SECTION_LAB !== 'undefined' && SECTION_LAB[sectionId]) || [];
+    return links
+      .map(([phase, label]) => `<a class="meta-link" href="lab.html#phase-${phase}">Практика в Mega Lab: ${esc(label)} →</a>`)
+      .join('');
+  }
+
+  const sections = ROADMAP_DATA.map(section => ({
+    id: section.id,
+    num: section.icon,
+    title: section.title,
+    description: section.description,
+    metaHtml: labLinksHtml(section.id),
+    cards: section.topics.map(topic =>
+      topic.isResources
+        ? {
+            id: 'topic-' + topic.id,
+            title: topic.title,
+            search: topic.items.map(item => item.text + ' ' + (item.tip || '')).join(' '),
+            topHtml: resourcesHtml(topic),
+          }
+        : {
+            id: 'topic-' + topic.id,
+            title: topic.title,
+            isNew: topic.isNew,
+            items: topic.items.map(item => ({
+              id: item.id,
+              title: item.text,
+              search: searchText(item),
+              html: itemHtml(item),
+            })),
+          }
+    ),
+  }));
+
+  Tracker.init({
+    page: 'roadmap',
+    storageKey: Tracker.ROADMAP_KEY,
+    sections,
+    news: {
+      id: 'roadmap-2026-11',
+      html: `
+        <strong>Обновление, ноябрь 2026. Все твои галочки на месте.</strong>
+        <ul>
+          <li>У каждой темы появился блок «Проверь себя»: вопросы как на собеседовании со скрытыми ответами. А у базовых тем ещё и «Попробуй руками» — эксперимент на 10 минут.</li>
+          <li>В первом разделе 11 новых пунктов про базу (помечены «новое»): память, процессы и порты, путь запроса от URL до экрана, CORS, авторизация, сервер и SQL.</li>
+          <li>Темы актуализированы: Vite 8, TypeScript 7, React 19, Next.js 16, Nuxt 4, Tailwind 4, ESLint 10.</li>
+          <li>Удобства: кнопка «Продолжить», поиск, «Скрыть выполненное», светлая тема, экспорт прогресса в файл (внизу меню).</li>
+        </ul>`,
+    },
   });
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.classList.toggle('active', link.dataset.section === current);
-  });
-}
-
-window.addEventListener('scroll', updateActiveNav, { passive: true });
-
-// Init
-renderNav();
-renderMain();
-updateAllProgress();
-updateActiveNav();
+})();
